@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المهام والتنبيهات</title>
+<style>
+:root {
+  /* ثيم فخم رسمي */
+  --bg: #eef1f5;
+  --bg-card: #ffffff;
+  --bg-secondary: #f4f6f9;
+  --text: #1c2733;
+  --text-muted: #5e6b7a;
+  --text-light: #8995a3;
+  --blue: #1b5e9e;
+  --green: #1f7a4d;
+  --red: #b3352e;
+  --orange: #c47d18;
+  --purple: #6a4c93;
+  --yellow: #c9a227;
+  --separator: #d6dde5;
+  --separator-light: #e4e9ee;
+  --shadow-sm: 0 1px 3px rgba(20,40,70,0.06), 0 1px 2px rgba(20,40,70,0.04);
+  --shadow-md: 0 3px 10px rgba(20,40,70,0.08), 0 1px 3px rgba(20,40,70,0.05);
+  --shadow-lg: 0 14px 44px rgba(20,40,70,0.18);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Helvetica Neue', 'Tajawal', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  padding: 24px;
+  min-height: 100vh;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.header-title h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text);
+}
+.subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.header-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--separator);
+  padding: 8px 14px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.btn:hover { background: var(--separator-light); transform: translateY(-1px); }
+.btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
+.btn.primary:hover { background: #164d83; }
+.btn.success { background: var(--green); color: white; border-color: var(--green); }
+.btn.warning { background: var(--orange); color: white; border-color: var(--orange); }
+.btn.danger { background: var(--red); color: white; border-color: var(--red); }
+.btn-small { padding: 4px 10px; font-size: 11px; }
+
+/* KPI Cards */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--separator-light);
+  border-radius: var(--radius-md);
+  padding: 16px 16px 16px 18px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  overflow: hidden;
+}
+.kpi-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.kpi-bar {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  right: 0;
+  width: 4px;
+  border-radius: 4px;
+}
+.kpi-content { flex: 1; }
+.kpi-value { font-size: 26px; font-weight: 700; line-height: 1; }
+.kpi-label { font-size: 12px; color: var(--text-muted); font-weight: 500; margin-top: 5px; }
+
+/* Department Grid */
+.section { margin-bottom: 22px; }
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+.dept-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
+}
+.dept-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.15s;
+}
+.dept-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.dept-card.active { border-color: var(--blue); background: rgba(0,122,255,0.04); }
+.dept-info { flex: 1; min-width: 0; }
+.dept-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.dept-stats {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.dept-stats .urgent { color: var(--red); font-weight: 600; }
+
+/* Filters */
+.filters-bar {
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  box-shadow: var(--shadow-sm);
+}
+.filters-bar input, .filters-bar select {
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-family: inherit;
+  border: 1px solid transparent;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  min-width: 140px;
+}
+.filters-bar input:focus, .filters-bar select:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: white;
+}
+.filters-bar input { flex: 1; min-width: 200px; }
+
+/* View Tabs */
+.view-tabs {
+  display: inline-flex;
+  background: rgba(118,118,128,0.12);
+  border-radius: 9px;
+  padding: 2px;
+  margin-bottom: 14px;
+}
+.view-tab {
+  padding: 6px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  border: none;
+  background: transparent;
+  font-family: inherit;
+}
+.view-tab.active { background: var(--bg-card); box-shadow: var(--shadow-sm); }
+
+/* Kanban */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 14px;
+}
+.kanban-col {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  min-height: 280px;
+  box-shadow: var(--shadow-sm);
+}
+.kanban-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; font-weight: 600; }
+.kanban-dot { width: 8px; height: 8px; border-radius: 50%; }
+.kanban-col.todo .kanban-dot { background: var(--text-light); }
+.kanban-col.progress .kanban-dot { background: var(--orange); }
+.kanban-col.done .kanban-dot { background: var(--green); }
+.kanban-col.canceled .kanban-dot { background: var(--red); }
+.kanban-head .count {
+  background: var(--separator-light);
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-right: auto;
+}
+.kanban-card {
+  background: var(--bg-secondary);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.kanban-card:hover { background: white; border-color: var(--separator); transform: translateX(-2px); }
+.kc-title { font-size: 13px; font-weight: 500; margin-bottom: 6px; line-height: 1.4; }
+.kc-meta { display: flex; flex-wrap: wrap; gap: 4px; }
+
+/* Table */
+.table-view {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+.table-view table { width: 100%; border-collapse: collapse; }
+.table-view th {
+  background: var(--bg-secondary);
+  text-align: right;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--separator-light);
+}
+.table-view td {
+  padding: 10px 12px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--separator-light);
+  vertical-align: top;
+}
+.table-view tr:hover { background: var(--bg-secondary); cursor: pointer; }
+.task-id-num { color: var(--text-light); font-size: 11px; font-family: 'SF Mono', Menlo, monospace; }
+
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.badge-high { background: rgba(255,59,48,0.12); color: #c41e1a; }
+.badge-urgent { background: var(--red); color: white; }
+.badge-med { background: rgba(255,149,0,0.15); color: #b25c00; }
+.badge-low { background: rgba(52,199,89,0.15); color: #1f7a36; }
+.badge-resp { background: rgba(88,86,214,0.12); color: #4a48b0; }
+.badge-status-todo { background: rgba(118,118,128,0.15); color: #555; }
+.badge-status-progress { background: rgba(255,149,0,0.15); color: #b25c00; }
+.badge-status-done { background: rgba(52,199,89,0.15); color: #1f7a36; }
+.badge-status-blocked { background: rgba(255,59,48,0.12); color: #c41e1a; }
+.badge-overdue { background: rgba(255,59,48,0.12); color: #c41e1a; font-weight: 600; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+  overflow-y: auto;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  width: 100%;
+  max-width: 720px;
+  padding: 24px;
+  box-shadow: var(--shadow-lg);
+  margin: auto;
+}
+.modal-large { max-width: 900px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 12px; }
+.modal-title { font-size: 18px; font-weight: 700; }
+.modal-close { background: var(--separator-light); border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; }
+.modal-close:hover { background: var(--separator); }
+
+/* Form */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.form-field { display: flex; flex-direction: column; gap: 4px; }
+.form-field.full { grid-column: 1 / -1; }
+.field-label { font-size: 12px; color: var(--text-muted); font-weight: 600; }
+.form-input, .form-select, .form-textarea {
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-family: inherit;
+  border: 1px solid transparent;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  width: 100%;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+  background: white;
+}
+.form-textarea { min-height: 60px; resize: vertical; font-family: inherit; }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 12px; flex-wrap: wrap; }
+
+/* Conversations Section */
+.conv-section {
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  margin-top: 16px;
+}
+.conv-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.conv-head h3 { font-size: 15px; font-weight: 700; }
+.conv-item {
+  background: white;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-right: 3px solid var(--blue);
+}
+.conv-item.type-issue { border-right-color: var(--red); }
+.conv-item.type-progress { border-right-color: var(--orange); }
+.conv-item.type-done { border-right-color: var(--green); }
+.conv-item.type-meeting { border-right-color: var(--purple); }
+.conv-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 11px; color: var(--text-muted); }
+.conv-person { font-weight: 600; color: var(--text); }
+.conv-type-badge { padding: 2px 8px; border-radius: 5px; font-weight: 600; }
+.conv-text { font-size: 13px; line-height: 1.55; white-space: pre-wrap; }
+.conv-progress { display: inline-block; padding: 2px 6px; background: rgba(0,122,255,0.1); color: var(--blue); border-radius: 4px; font-size: 11px; font-weight: 600; margin-right: 6px; }
+.conv-empty { text-align: center; padding: 24px; color: var(--text-light); font-size: 13px; }
+
+/* Empty state */
+.empty-state { padding: 50px; text-align: center; color: var(--text-light); font-size: 13px; }
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--blue);
+  color: white;
+  font-size: 26px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,122,255,0.35);
+  transition: transform 0.15s, background 0.15s;
+  z-index: 100;
+}
+.fab:hover { transform: scale(1.07); background: #164d83; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--separator); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #c7c7cc; }
+
+/* Notifications Bell */
+.notif-bell {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--separator);
+  padding: 8px 14px;
+  height: 38px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.notif-bell:hover { background: var(--separator-light); transform: translateY(-1px); }
+.notif-bell.has-new { animation: bellShake 0.6s ease-in-out; }
+@keyframes bellShake {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-15deg); }
+  40% { transform: rotate(15deg); }
+  60% { transform: rotate(-10deg); }
+  80% { transform: rotate(10deg); }
+}
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  background: var(--red);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  padding: 0 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.notif-badge.hidden { display: none; }
+.notif-panel {
+  position: fixed;
+  top: 70px;
+  left: 24px;
+  width: 380px;
+  max-height: 70vh;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  z-index: 999;
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+}
+.notif-panel.active { display: flex; }
+.notif-panel-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--separator-light);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.notif-panel-title { font-size: 16px; font-weight: 700; }
+.notif-panel-actions { display: flex; gap: 6px; }
+.notif-panel-actions button {
+  background: transparent;
+  border: none;
+  color: var(--blue);
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.notif-panel-actions button:hover { background: var(--separator-light); }
+.notif-list { overflow-y: auto; flex: 1; padding: 8px; }
+.notif-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.1s;
+  margin-bottom: 2px;
+}
+.notif-item:hover { background: var(--bg-secondary); }
+.notif-item.unread { background: rgba(0,122,255,0.05); }
+.notif-item.unread::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--blue);
+}
+.notif-icon-circle {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.notif-body { flex: 1; min-width: 0; }
+.notif-text { font-size: 13px; color: var(--text); line-height: 1.4; margin-bottom: 3px; }
+.notif-text strong { font-weight: 600; }
+.notif-time { font-size: 11px; color: var(--text-light); }
+.notif-empty { text-align: center; padding: 40px 20px; color: var(--text-light); font-size: 13px; }
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  z-index: 2000;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .header-title h1 { font-size: 22px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="dashboard-header">
+  <div class="header-title">
+    <h1>لوحة إدارة المهام والمحادثات</h1>
+    <p class="subtitle" id="lastUpdate">جاري التحميل...</p>
+  </div>
+  <div class="header-actions">
+    <button class="btn primary" onclick="openAddModal()">مهمة جديدة</button>
+    <button class="btn" onclick="exportJSON()">حفظ نسخة (JSON)</button>
+    <button class="btn" onclick="document.getElementById('importInput').click()">استيراد</button>
+    <button class="btn" onclick="exportCSV()">تصدير CSV</button>
+    <button class="btn" onclick="resetData()" title="مسح كل البيانات">مسح الكل</button>
+    <button class="notif-bell" id="notifBell" onclick="toggleNotifPanel(event)" title="التنبيهات">التنبيهات<span class="notif-badge hidden" id="notifBadge">0</span></button>
+    <input type="file" id="importInput" accept=".json" style="display:none" onchange="importJSON(event)">
+  </div>
+</div>
+
+<!-- Notifications Panel -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-panel-head">
+    <div class="notif-panel-title">التنبيهات</div>
+    <div class="notif-panel-actions">
+      <button onclick="markAllRead()">قراءة الكل</button>
+      <button onclick="clearAllNotifs()">مسح الكل</button>
+    </div>
+  </div>
+  <div class="notif-list" id="notifList">
+    <div class="notif-empty">لا توجد تنبيهات</div>
+  </div>
+</div>
+
+<!-- KPI Row -->
+<div class="kpi-row" id="kpiRow"></div>
+
+<!-- Department Grid -->
+<div class="section">
+  <div class="section-title">توزيع المهام حسب القسم</div>
+  <div class="dept-grid" id="deptGrid"></div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+  <input type="text" id="searchInput" placeholder="بحث عن مهمة..." oninput="onFilterChange()">
+  <select id="filterSource" onchange="onFilterChange()">
+    <option value="">كل المصادر</option>
+  </select>
+  <select id="filterDept" onchange="onFilterChange()">
+    <option value="">كل الأقسام</option>
+  </select>
+  <select id="filterResp" onchange="onFilterChange()">
+    <option value="">كل المسؤولين</option>
+  </select>
+  <select id="filterPriority" onchange="onFilterChange()">
+    <option value="">كل الأولويات</option>
+    <option value="عاجلة">عاجلة</option>
+    <option value="عالية">عالية</option>
+    <option value="متوسطة">متوسطة</option>
+    <option value="منخفضة">منخفضة</option>
+  </select>
+  <select id="filterStatus" onchange="onFilterChange()">
+    <option value="">كل الحالات</option>
+    <option value="لم يبدأ">لم يبدأ</option>
+    <option value="قيد التنفيذ">قيد التنفيذ</option>
+    <option value="مكتمل">مكتمل</option>
+    <option value="معلق">معلق</option>
+    <option value="ملغى">ملغى</option>
+  </select>
+</div>
+
+<!-- View Tabs -->
+<div class="view-tabs">
+  <button class="view-tab active" data-view="kanban" onclick="switchView('kanban')">كانبان</button>
+  <button class="view-tab" data-view="table" onclick="switchView('table')">جدول</button>
+</div>
+
+<!-- Views -->
+<div id="kanbanView"></div>
+<div id="tableView" style="display:none;"></div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="taskModal">
+  <div class="modal modal-large">
+    <div class="modal-head">
+      <div class="modal-title" id="taskModalTitle">إضافة مهمة جديدة</div>
+      <button class="modal-close" onclick="closeModal('taskModal')">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="field-label">المصدر</label>
+        <input list="sourceList" class="form-input" id="fldSource" placeholder="اكتب مصدر جديد أو اختر">
+        <datalist id="sourceList"></datalist>
+      </div>
+      <div class="form-field">
+        <label class="field-label">القسم / المحور *</label>
+        <input list="deptList" class="form-input" id="fldDept" placeholder="اكتب قسم جديد أو اختر">
+        <datalist id="deptList"></datalist>
+      </div>
+      <div class="form-field full">
+        <label class="field-label">المجال / الملف / المهمة *</label>
+        <input type="text" class="form-input" id="fldTitle">
+      </div>
+      <div class="form-field full">
+        <label class="field-label">التحديات / الوضع الحالي</label>
+        <textarea class="form-textarea" id="fldChallenge"></textarea>
+      </div>
+      <div class="form-field full">
+        <label class="field-label">الحلول / المطلوب</label>
+        <textarea class="form-textarea" id="fldSolution"></textarea>
+      </div>
+      <div class="form-field">
+        <label class="field-label">المسؤول</label>
+        <input list="respList" class="form-input" id="fldResp">
+        <datalist id="respList"></datalist>
+      </div>
+      <div class="form-field">
+        <label class="field-label">الأولوية *</label>
+        <select class="form-select" id="fldPriority">
+          <option value="عاجلة">عاجلة</option>
+          <option value="عالية">عالية</option>
+          <option value="متوسطة" selected>متوسطة</option>
+          <option value="منخفضة">منخفضة</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="field-label">الحالة *</label>
+        <select class="form-select" id="fldStatus">
+          <option value="لم يبدأ" selected>لم يبدأ</option>
+          <option value="قيد التنفيذ">قيد التنفيذ</option>
+          <option value="مكتمل">مكتمل</option>
+          <option value="معلق">معلق</option>
+          <option value="ملغى">ملغى</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="field-label">نسبة الإنجاز (%)</label>
+        <input type="number" min="0" max="100" class="form-input" id="fldProgress" value="0">
+      </div>
+      <div class="form-field">
+        <label class="field-label">تاريخ البدء</label>
+        <input type="date" class="form-input" id="fldStartDate">
+      </div>
+      <div class="form-field">
+        <label class="field-label">تاريخ الإنجاز</label>
+        <input type="date" class="form-input" id="fldDueDate">
+      </div>
+      <div class="form-field full">
+        <label class="field-label">ملاحظات</label>
+        <textarea class="form-textarea" id="fldNotes"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="saveTask()">حفظ</button>
+      <button class="btn" onclick="closeModal('taskModal')">إلغاء</button>
+      <button class="btn danger" id="deleteBtn" onclick="deleteTask()" style="display:none; margin-right:auto;">حذف</button>
+    </div>
+
+    <!-- Conversations Section -->
+    <div class="conv-section" id="convSection" style="display:none;">
+      <div class="conv-head">
+        <h3>سجل التحديثات والمحادثات</h3>
+        <button class="btn warning btn-small" onclick="openUpdateModal()">إضافة تحديث</button>
+      </div>
+      <div id="convList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Update Modal -->
+<div class="modal-overlay" id="updateModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">إضافة تحديث جديد</div>
+      <button class="modal-close" onclick="closeModal('updateModal')">&times;</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="field-label">اسم الشخص</label>
+        <input type="text" class="form-input" id="updPerson" placeholder="اسمك">
+      </div>
+      <div class="form-field">
+        <label class="field-label">نوع التحديث *</label>
+        <select class="form-select" id="updType">
+          <option value="ملاحظة">ملاحظة</option>
+          <option value="تقدم">تقدم</option>
+          <option value="مشكلة">مشكلة</option>
+          <option value="إنجاز">إنجاز</option>
+          <option value="تغيير حالة">تغيير حالة</option>
+          <option value="طلب">طلب</option>
+          <option value="اجتماع">اجتماع</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="field-label">نسبة الإنجاز الجديدة (اختياري)</label>
+        <input type="number" min="0" max="100" class="form-input" id="updProgress" placeholder="مثلاً: 50">
+      </div>
+      <div class="form-field">
+        <label class="field-label">الحالة الجديدة (اختياري)</label>
+        <select class="form-select" id="updStatus">
+          <option value="">- لا تغيير -</option>
+          <option value="لم يبدأ">لم يبدأ</option>
+          <option value="قيد التنفيذ">قيد التنفيذ</option>
+          <option value="مكتمل">مكتمل</option>
+          <option value="معلق">معلق</option>
+          <option value="ملغى">ملغى</option>
+        </select>
+      </div>
+      <div class="form-field full">
+        <label class="field-label">نص التحديث *</label>
+        <textarea class="form-textarea" id="updText" placeholder="اكتب التحديث هنا..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn primary" onclick="saveUpdate()">حفظ التحديث</button>
+      <button class="btn" onclick="closeModal('updateModal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openAddModal()" title="إضافة مهمة">+</button>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ========================== Data ==========================
+const STORAGE_KEY = 'tasks_dashboard_v3';
+const NOTIF_KEY = 'tasks_notifications_v3';
+const DEFAULT_TASKS = [];
+const SOURCES = [];
+const DEPARTMENTS = [];
+const RESPONSIBLES = ["HR", "HR + المالية", "إدارة التكاليف", "إدارة المشتريات", "الإدارة", "الإدارة + التسويق", "الإدارة + المالية", "الإدارة + المستودعات", "الإدارة + المشتريات", "الإدارة + تقنية المعلومات", "الإدارة / المشاريع", "الإدارة / المشتريات / الصيانة", "الإدارة المعنية", "التسويق", "التسويق + التشغيل", "التسويق + المالية", "التسويق / المبيعات", "التشغيل", "التشغيل + الإدارة", "التشغيل + التسويق", "التشغيل + التكاليف", "التشغيل + التكاليف + الشيف", "التشغيل + الشيف", "التشغيل + المالية", "التشغيل + الموارد البشرية", "التشغيل + خدمة العملاء", "التشغيل / الجودة", "التقنية", "التكاليف", "التكاليف + HR", "التكاليف + التشغيل", "التكاليف + المالية", "التكاليف + المستودعات", "الحركة / الأصول", "الصيانة", "الصيانة + التشغيل", "الصيانة + مشرف السكن", "الصيانة / المشاريع", "المالية", "المالية + المشتريات", "المشتريات", "المشتريات + التشغيل", "المشتريات + التكاليف", "المشتريات + الشيف + التكاليف", "المشتريات + الصيانة", "المشتريات + المالية", "المشتريات + النقل", "المشتريات / التكاليف", "الموارد البشرية", "الموارد البشرية + الإدارة", "الموارد البشرية + التشغيل", "الموارد البشرية + المالية", "الموارد البشرية + المدراء", "الموارد البشرية + النقل", "الموارد البشرية + مشرف السكن", "الموارد البشرية / التدريب", "النقل", "النقل + التشغيل", "النقل + المالية", "النقل + المشتريات", "تقنية المعلومات / البيانات", "مدير المستودعات", "مسؤول مستودع الصيانة", "مشرف السكن", "مشرف النقل"];
+
+// Department colors (cycling palette)
+const DEPT_COLORS = ['#1b5e9e', '#1f7a4d', '#6a4c93', '#b3352e', '#c47d18', '#3a7ca5', '#8a6d3b', '#5e6b7a'];
+function getDeptColor(dept) {
+  const idx = DEPARTMENTS.indexOf(dept);
+  return DEPT_COLORS[idx % DEPT_COLORS.length];
+}
+
+let TASKS = [];
+let NOTIFS = [];
+let currentEditId = null;
+let currentDeptFilter = '';
+let currentView = 'kanban';
+
+// ========================== Load/Save ==========================
+function loadTasks() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (stored && Array.isArray(stored)) {
+      TASKS = stored;
+    } else {
+      TASKS = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+    }
+  } catch(e) {
+    TASKS = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+  }
+  // Ensure all tasks have updates array
+  TASKS.forEach(t => { if (!t.updates) t.updates = []; });
+}
+
+function saveTasksToStorage() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(TASKS));
+    updateLastSaved();
+  } catch(e) {
+    console.error('Save failed', e);
+  }
+}
+
+function updateLastSaved() {
+  const now = new Date();
+  document.getElementById('lastUpdate').textContent =
+    `${TASKS.length} مهمة · آخر تحديث: ${now.toLocaleString('ar', {dateStyle: 'short', timeStyle: 'short'})}`;
+}
+
+function resetData() {
+  if (!confirm('سيتم حذف كل المهام والتحديثات والتنبيهات. متأكد؟')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  localStorage.removeItem(NOTIF_KEY);
+  TASKS = [];
+  NOTIFS = [];
+  renderAll();
+  renderNotifs();
+  toast('تم مسح كل البيانات');
+}
+
+// ========================== Notifications ==========================
+function loadNotifs() {
+  try { NOTIFS = JSON.parse(localStorage.getItem(NOTIF_KEY) || '[]'); }
+  catch(e) { NOTIFS = []; }
+}
+function saveNotifs() {
+  try { localStorage.setItem(NOTIF_KEY, JSON.stringify(NOTIFS)); } catch(e) {}
+}
+function addNotif(type, text, taskId) {
+  const notif = {
+    id: Date.now() + Math.random(),
+    type: type, text: text,
+    taskId: taskId || null,
+    date: new Date().toISOString(),
+    read: false
+  };
+  NOTIFS.unshift(notif);
+  if (NOTIFS.length > 100) NOTIFS = NOTIFS.slice(0, 100);
+  saveNotifs();
+  renderNotifs();
+  shakeBell();
+}
+function shakeBell() {
+  const bell = document.getElementById('notifBell');
+  bell.classList.add('has-new');
+  setTimeout(() => bell.classList.remove('has-new'), 700);
+}
+function renderNotifs() {
+  const unreadCount = NOTIFS.filter(n => !n.read).length;
+  const badge = document.getElementById('notifBadge');
+  if (unreadCount > 0) {
+    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
+  const list = document.getElementById('notifList');
+  if (NOTIFS.length === 0) {
+    list.innerHTML = '<div class="notif-empty">لا توجد تنبيهات بعد<br><small>التنبيهات تظهر هنا عند أي تغيير في المهام</small></div>';
+    return;
+  }
+  list.innerHTML = NOTIFS.map(n => {
+    const iconMap = {
+      'add':      { bg: '#1f7a4d' },
+      'edit':     { bg: '#1b5e9e' },
+      'delete':   { bg: '#b3352e' },
+      'update':   { bg: '#c47d18' },
+      'status':   { bg: '#6a4c93' },
+      'progress': { bg: '#1b5e9e' },
+      'import':   { bg: '#1b5e9e' },
+    };
+    const ic = iconMap[n.type] || { bg: '#5e6b7a' };
+    const dt = new Date(n.date);
+    const dtStr = formatRelativeTime(dt);
+    return `<div class="notif-item ${n.read ? '' : 'unread'}" onclick="onNotifClick('${n.id}', ${n.taskId || 'null'})">
+      <div class="notif-icon-circle" style="background: ${ic.bg};"></div>
+      <div class="notif-body">
+        <div class="notif-text">${n.text}</div>
+        <div class="notif-time">${dtStr}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function formatRelativeTime(date) {
+  const now = new Date();
+  const diffSec = Math.floor((now - date) / 1000);
+  const diffMin = Math.floor(diffSec / 60);
+  const diffHr = Math.floor(diffMin / 60);
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffSec < 30) return 'الآن';
+  if (diffMin < 1) return 'منذ ' + diffSec + ' ثانية';
+  if (diffMin < 60) return 'منذ ' + diffMin + ' دقيقة';
+  if (diffHr < 24) return 'منذ ' + diffHr + ' ساعة';
+  if (diffDay < 7) return 'منذ ' + diffDay + ' يوم';
+  return date.toLocaleDateString('ar');
+}
+function toggleNotifPanel(e) {
+  if (e) e.stopPropagation();
+  document.getElementById('notifPanel').classList.toggle('active');
+}
+function onNotifClick(notifId, taskId) {
+  const notif = NOTIFS.find(n => String(n.id) === String(notifId));
+  if (notif) { notif.read = true; saveNotifs(); renderNotifs(); }
+  if (taskId && taskId !== 'null') {
+    const t = TASKS.find(x => x.id === taskId);
+    if (t) {
+      document.getElementById('notifPanel').classList.remove('active');
+      openEditModal(taskId);
+    }
+  }
+}
+function markAllRead() {
+  NOTIFS.forEach(n => n.read = true);
+  saveNotifs();
+  renderNotifs();
+  toast('تم تعليم الكل كمقروء');
+}
+function clearAllNotifs() {
+  if (NOTIFS.length === 0) return;
+  if (!confirm('مسح كل التنبيهات؟')) return;
+  NOTIFS = [];
+  saveNotifs();
+  renderNotifs();
+  toast('تم مسح التنبيهات');
+}
+
+// ========================== Helpers ==========================
+function nextTaskId() {
+  let maxId = 0;
+  TASKS.forEach(t => { if (t.id > maxId) maxId = t.id; });
+  return maxId + 1;
+}
+
+function nextUpdateId(task) {
+  let maxId = 0;
+  (task.updates || []).forEach(u => { if (u.id > maxId) maxId = u.id; });
+  return maxId + 1;
+}
+
+function escapeHtml(s) {
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function getStatusKey(status) {
+  const s = (status || '').trim();
+  if (s === 'مكتمل') return 'done';
+  if (s === 'قيد التنفيذ') return 'progress';
+  if (s === 'ملغى') return 'canceled';
+  return 'todo';
+}
+
+function isOverdue(task) {
+  if (!task.dueDate) return false;
+  if (task.status === 'مكتمل' || task.status === 'ملغى') return false;
+  const due = new Date(task.dueDate);
+  return due < new Date();
+}
+
+function getFiltered() {
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const src = document.getElementById('filterSource').value;
+  const dept = document.getElementById('filterDept').value;
+  const resp = document.getElementById('filterResp').value;
+  const pri = document.getElementById('filterPriority').value;
+  const stat = document.getElementById('filterStatus').value;
+
+  return TASKS.filter(t => {
+    if (currentDeptFilter && t.department !== currentDeptFilter) return false;
+    if (src && t.source !== src) return false;
+    if (dept && t.department !== dept) return false;
+    if (resp && !(t.responsible || '').includes(resp)) return false;
+    if (pri && t.priority !== pri) return false;
+    if (stat && t.status !== stat) return false;
+    if (search) {
+      const text = `${t.title} ${t.challenge} ${t.solution} ${t.responsible} ${t.notes}`.toLowerCase();
+      if (!text.includes(search)) return false;
+    }
+    return true;
+  });
+}
+
+// ========================== KPI ==========================
+function renderKPI() {
+  const filtered = getFiltered();
+  const total = filtered.length;
+  const done = filtered.filter(t => t.status === 'مكتمل').length;
+  const progress = filtered.filter(t => t.status === 'قيد التنفيذ').length;
+  const todo = filtered.filter(t => t.status === 'لم يبدأ').length;
+  const overdue = filtered.filter(t => isOverdue(t)).length;
+  const urgent = filtered.filter(t => t.priority === 'عاجلة' || t.priority === 'عالية').length;
+
+  const kpis = [
+    { label: 'إجمالي المهام', value: total, color: '#1b5e9e' },
+    { label: 'لم يبدأ', value: todo, color: '#5e6b7a' },
+    { label: 'قيد التنفيذ', value: progress, color: '#c47d18' },
+    { label: 'مكتمل', value: done, color: '#1f7a4d' },
+    { label: 'متأخر', value: overdue, color: '#b3352e' },
+    { label: 'عالية/عاجلة', value: urgent, color: '#b3352e' },
+  ];
+
+  document.getElementById('kpiRow').innerHTML = kpis.map(k => `
+    <div class="kpi-card">
+      <div class="kpi-bar" style="background: ${k.color};"></div>
+      <div class="kpi-content">
+        <div class="kpi-value" style="color: ${k.color};">${k.value}</div>
+        <div class="kpi-label">${k.label}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ========================== Departments ==========================
+function renderDepts() {
+  const allActive = currentDeptFilter === '';
+  let html = `
+    <div class="dept-card ${allActive ? 'active' : ''}" onclick="filterByDept('')">
+      <div class="dept-info">
+        <div class="dept-name">كل الأقسام</div>
+        <div class="dept-stats">${TASKS.length} مهمة</div>
+      </div>
+    </div>
+  `;
+
+  const deptStats = {};
+  TASKS.forEach(t => {
+    const d = t.department;
+    if (!deptStats[d]) deptStats[d] = { total: 0, done: 0, urgent: 0 };
+    deptStats[d].total++;
+    if (t.status === 'مكتمل') deptStats[d].done++;
+    if (t.priority === 'عاجلة' || t.priority === 'عالية') deptStats[d].urgent++;
+  });
+
+  const sorted = Object.entries(deptStats).sort((a, b) => b[1].total - a[1].total);
+
+  html += sorted.map(([dept, stats]) => {
+    const color = getDeptColor(dept);
+    const active = currentDeptFilter === dept;
+    return `
+      <div class="dept-card ${active ? 'active' : ''}" onclick="filterByDept('${escapeHtml(dept).replace(/'/g, "\\'")}')">
+        <div class="dept-info">
+          <div class="dept-name">${escapeHtml(dept)}</div>
+          <div class="dept-stats">
+            <span>${stats.total} مهمة</span> · <span>${stats.done} منجزة</span>
+            ${stats.urgent > 0 ? ` · <span class="urgent">${stats.urgent} عاجلة</span>` : ''}
+          </div>
+        </div>
+        <div style="width:12px; height:40px; border-radius: 6px; background: ${color};"></div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('deptGrid').innerHTML = html;
+}
+
+function filterByDept(dept) {
+  currentDeptFilter = dept;
+  renderAll();
+}
+
+// ========================== Kanban View ==========================
+function renderKanban() {
+  const filtered = getFiltered();
+  const groups = { todo: [], progress: [], done: [], canceled: [] };
+  filtered.forEach(t => {
+    const k = getStatusKey(t.status);
+    if (groups[k]) groups[k].push(t);
+  });
+
+  const card = (t) => {
+    const updateCount = (t.updates || []).length;
+    const prio = t.priority;
+    const prioBadge = prio === 'عاجلة' ? '<span class="badge badge-urgent">عاجلة</span>' :
+                      prio === 'عالية' ? '<span class="badge badge-high">عالية</span>' :
+                      prio === 'متوسطة' ? '<span class="badge badge-med">متوسطة</span>' :
+                      prio === 'منخفضة' ? '<span class="badge badge-low">منخفضة</span>' : '';
+    const overdue = isOverdue(t) ? '<span class="badge badge-overdue">متأخر</span>' : '';
+    const updateBadge = updateCount > 0 ? `<span class="badge badge-resp">${updateCount} تحديث</span>` : '';
+    return `
+      <div class="kanban-card" onclick="openEditModal(${t.id})">
+        <div class="kc-title">${escapeHtml(t.title)}</div>
+        <div class="kc-meta">
+          ${prioBadge}
+          ${overdue}
+          ${t.responsible ? `<span class="badge badge-resp">${escapeHtml(t.responsible.substring(0, 25))}</span>` : ''}
+          ${updateBadge}
+        </div>
+      </div>
+    `;
+  };
+
+  document.getElementById('kanbanView').innerHTML = `
+    <div class="kanban-board">
+      <div class="kanban-col todo">
+        <div class="kanban-head"><span class="kanban-dot"></span>لم يبدأ <span class="count">${groups.todo.length}</span></div>
+        ${groups.todo.map(card).join('') || '<div class="empty-state">لا توجد مهام</div>'}
+      </div>
+      <div class="kanban-col progress">
+        <div class="kanban-head"><span class="kanban-dot"></span>قيد التنفيذ <span class="count">${groups.progress.length}</span></div>
+        ${groups.progress.map(card).join('') || '<div class="empty-state">لا توجد مهام</div>'}
+      </div>
+      <div class="kanban-col done">
+        <div class="kanban-head"><span class="kanban-dot"></span>مكتمل <span class="count">${groups.done.length}</span></div>
+        ${groups.done.map(card).join('') || '<div class="empty-state">لا توجد مهام</div>'}
+      </div>
+      ${groups.canceled.length > 0 ? `
+        <div class="kanban-col canceled">
+          <div class="kanban-head"><span class="kanban-dot"></span>ملغى <span class="count">${groups.canceled.length}</span></div>
+          ${groups.canceled.map(card).join('')}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+// ========================== Table View ==========================
+function renderTable() {
+  const filtered = getFiltered();
+  const rows = filtered.map(t => {
+    const stat = t.status;
+    const statKey = getStatusKey(stat);
+    const statCls = statKey === 'done' ? 'badge-status-done' :
+                    statKey === 'progress' ? 'badge-status-progress' :
+                    statKey === 'canceled' ? 'badge-status-blocked' : 'badge-status-todo';
+    const prio = t.priority;
+    const prioCls = prio === 'عاجلة' ? 'badge-urgent' :
+                    prio === 'عالية' ? 'badge-high' :
+                    prio === 'متوسطة' ? 'badge-med' : 'badge-low';
+    const overdue = isOverdue(t) ? '<span class="badge badge-overdue">متأخر</span>' : '';
+    const updateCount = (t.updates || []).length;
+
+    return `
+      <tr onclick="openEditModal(${t.id})">
+        <td><span class="task-id-num">#${t.id}</span></td>
+        <td><div style="font-weight: 500;">${escapeHtml(t.title)}</div></td>
+        <td><span class="badge" style="background: ${getDeptColor(t.department)}22; color: ${getDeptColor(t.department)};">${escapeHtml(t.department)}</span></td>
+        <td><span class="badge ${prioCls}">${escapeHtml(prio || '-')}</span></td>
+        <td><span class="badge ${statCls}">${escapeHtml(stat || '-')}</span></td>
+        <td>${escapeHtml((t.responsible || '').substring(0, 30))}</td>
+        <td>${t.dueDate ? escapeHtml(t.dueDate.substring(0, 10)) : '-'} ${overdue}</td>
+        <td style="text-align: center;">${updateCount > 0 ? updateCount : '-'}</td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('tableView').innerHTML = `
+    <div class="table-view">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>المهمة</th>
+            <th>القسم</th>
+            <th>الأولوية</th>
+            <th>الحالة</th>
+            <th>المسؤول</th>
+            <th>تاريخ الإنجاز</th>
+            <th>تحديثات</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="8" class="empty-state">لا توجد مهام</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+// ========================== View Switch ==========================
+function switchView(view) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.toggle('active', t.dataset.view === view));
+  document.getElementById('kanbanView').style.display = view === 'kanban' ? '' : 'none';
+  document.getElementById('tableView').style.display = view === 'table' ? '' : 'none';
+  renderViews();
+}
+
+function renderViews() {
+  if (currentView === 'kanban') renderKanban();
+  else renderTable();
+}
+
+// ========================== Filter Change ==========================
+function onFilterChange() {
+  renderAll();
+}
+
+// ========================== Render All ==========================
+function renderAll() {
+  refreshSuggestions();
+  renderKPI();
+  renderDepts();
+  renderViews();
+}
+
+// يعيد بناء قوائم الفلاتر والاقتراحات مع الحفاظ على القيم المختارة
+function refreshSuggestions() {
+  const filterSource = document.getElementById('filterSource');
+  const filterDept = document.getElementById('filterDept');
+  const filterResp = document.getElementById('filterResp');
+  if (!filterSource) return;
+
+  const prevSource = filterSource.value;
+  const prevDept = filterDept.value;
+  const prevResp = filterResp.value;
+
+  // أبقِ الخيار الأول (الافتراضي) فقط ثم أعد التعبئة
+  filterSource.length = 1;
+  filterDept.length = 1;
+  filterResp.length = 1;
+  document.getElementById('sourceList').innerHTML = '';
+  document.getElementById('deptList').innerHTML = '';
+  document.getElementById('respList').innerHTML = '';
+
+  populateSelects();
+
+  if ([...filterSource.options].some(o => o.value === prevSource)) filterSource.value = prevSource;
+  if ([...filterDept.options].some(o => o.value === prevDept)) filterDept.value = prevDept;
+  if ([...filterResp.options].some(o => o.value === prevResp)) filterResp.value = prevResp;
+}
+
+// ========================== Modal: Add/Edit ==========================
+function openAddModal() {
+  currentEditId = null;
+  document.getElementById('taskModalTitle').textContent = 'إضافة مهمة جديدة';
+  document.getElementById('deleteBtn').style.display = 'none';
+  document.getElementById('convSection').style.display = 'none';
+
+  document.getElementById('fldTitle').value = '';
+  document.getElementById('fldChallenge').value = '';
+  document.getElementById('fldSolution').value = '';
+  document.getElementById('fldResp').value = '';
+  document.getElementById('fldNotes').value = '';
+  document.getElementById('fldStartDate').value = '';
+  document.getElementById('fldDueDate').value = '';
+  document.getElementById('fldProgress').value = 0;
+  document.getElementById('fldSource').value = '';
+  document.getElementById('fldDept').value = '';
+  document.getElementById('fldPriority').value = 'متوسطة';
+  document.getElementById('fldStatus').value = 'لم يبدأ';
+
+  document.getElementById('taskModal').classList.add('active');
+}
+
+function openEditModal(taskId) {
+  const t = TASKS.find(x => x.id === taskId);
+  if (!t) return;
+  currentEditId = taskId;
+  document.getElementById('taskModalTitle').textContent = `مهمة #${t.id}`;
+  document.getElementById('deleteBtn').style.display = '';
+  document.getElementById('convSection').style.display = '';
+
+  document.getElementById('fldSource').value = t.source || '';
+  document.getElementById('fldDept').value = t.department || '';
+  document.getElementById('fldTitle').value = t.title || '';
+  document.getElementById('fldChallenge').value = t.challenge || '';
+  document.getElementById('fldSolution').value = t.solution || '';
+  document.getElementById('fldResp').value = t.responsible || '';
+  document.getElementById('fldPriority').value = t.priority || 'متوسطة';
+  document.getElementById('fldStatus').value = t.status || 'لم يبدأ';
+  document.getElementById('fldProgress').value = typeof t.progress === 'number' ? Math.round(t.progress * (t.progress <= 1 ? 100 : 1)) : (t.progress || 0);
+  document.getElementById('fldStartDate').value = t.startDate ? t.startDate.substring(0, 10) : '';
+  document.getElementById('fldDueDate').value = t.dueDate ? t.dueDate.substring(0, 10) : '';
+  document.getElementById('fldNotes').value = t.notes || '';
+
+  renderConversations(t);
+  document.getElementById('taskModal').classList.add('active');
+}
+
+function saveTask() {
+  const title = document.getElementById('fldTitle').value.trim();
+  if (!title) { alert('من فضلك أدخل اسم المهمة'); return; }
+
+  const data = {
+    source: document.getElementById('fldSource').value,
+    department: document.getElementById('fldDept').value,
+    title: title,
+    challenge: document.getElementById('fldChallenge').value.trim(),
+    solution: document.getElementById('fldSolution').value.trim(),
+    responsible: document.getElementById('fldResp').value.trim(),
+    priority: document.getElementById('fldPriority').value,
+    status: document.getElementById('fldStatus').value,
+    progress: parseFloat(document.getElementById('fldProgress').value) / 100 || 0,
+    startDate: document.getElementById('fldStartDate').value,
+    dueDate: document.getElementById('fldDueDate').value,
+    notes: document.getElementById('fldNotes').value.trim(),
+  };
+
+  if (currentEditId === null) {
+    const newTask = { id: nextTaskId(), ...data, updates: [] };
+    newTask.updates.push({
+      id: 1,
+      date: new Date().toISOString(),
+      person: 'النظام',
+      type: 'ملاحظة',
+      text: 'تم إنشاء المهمة',
+      status: data.status,
+      progress: data.progress
+    });
+    TASKS.push(newTask);
+    addNotif('add', `تمت إضافة مهمة جديدة: <strong>${escapeHtml(data.title)}</strong>`, newTask.id);
+    toast(`تمت إضافة المهمة #${newTask.id}`);
+  } else {
+    const t = TASKS.find(x => x.id === currentEditId);
+    const oldStatus = t.status;
+    const oldProgress = t.progress;
+    Object.assign(t, data);
+    if (oldStatus !== data.status) {
+      t.updates = t.updates || [];
+      t.updates.push({
+        id: nextUpdateId(t),
+        date: new Date().toISOString(),
+        person: 'النظام',
+        type: 'تغيير حالة',
+        text: `تغيير الحالة من "${oldStatus}" إلى "${data.status}"`,
+        status: data.status
+      });
+      addNotif('status', `<strong>${escapeHtml(data.title)}</strong> - تغيرت الحالة إلى "${escapeHtml(data.status)}"`, t.id);
+    } else if (oldProgress !== data.progress) {
+      addNotif('progress', `<strong>${escapeHtml(data.title)}</strong> - تغيرت نسبة الإنجاز إلى ${Math.round(data.progress * 100)}%`, t.id);
+    } else {
+      addNotif('edit', `تم تعديل المهمة: <strong>${escapeHtml(data.title)}</strong>`, t.id);
+    }
+    toast('تم حفظ التعديلات');
+  }
+
+  saveTasksToStorage();
+  closeModal('taskModal');
+  renderAll();
+}
+
+function deleteTask() {
+  if (currentEditId === null) return;
+  const t = TASKS.find(x => x.id === currentEditId);
+  if (!t) return;
+  if (!confirm(`حذف المهمة "${t.title}" وكل تحديثاتها؟`)) return;
+  const deletedTitle = t.title;
+  TASKS = TASKS.filter(x => x.id !== currentEditId);
+  addNotif('delete', `تم حذف المهمة: <strong>${escapeHtml(deletedTitle)}</strong>`, null);
+  saveTasksToStorage();
+  closeModal('taskModal');
+  renderAll();
+  toast('تم حذف المهمة');
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+// ========================== Conversations ==========================
+function renderConversations(task) {
+  const list = document.getElementById('convList');
+  const updates = (task.updates || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (updates.length === 0) {
+    list.innerHTML = '<div class="conv-empty">لا توجد تحديثات بعد. اضغط (إضافة تحديث) لأول تحديث.</div>';
+    return;
+  }
+  list.innerHTML = updates.map(u => {
+    const typeColors = {
+      'مشكلة': 'rgba(179,53,46,0.12); color: #9e2d27',
+      'إنجاز': 'rgba(31,122,77,0.13); color: #1f7a4d',
+      'تقدم': 'rgba(196,125,24,0.14); color: #9c6312',
+      'تغيير حالة': 'rgba(106,76,147,0.14); color: #574080',
+      'اجتماع': 'rgba(106,76,147,0.14); color: #574080',
+      'ملاحظة': 'rgba(94,107,122,0.14); color: #4a5663',
+      'طلب': 'rgba(27,94,158,0.12); color: #15487a',
+    };
+    const typeKey = u.type === 'مشكلة' ? 'issue' :
+                    u.type === 'إنجاز' ? 'done' :
+                    u.type === 'تقدم' ? 'progress' :
+                    u.type === 'اجتماع' ? 'meeting' : '';
+    const dt = new Date(u.date);
+    const dtStr = dt.toLocaleString('ar', {dateStyle: 'short', timeStyle: 'short'});
+    const progStr = u.progress !== undefined && u.progress !== null && u.progress !== '' ?
+                    `<span class="conv-progress">${Math.round(u.progress * (u.progress <= 1 ? 100 : 1))}%</span>` : '';
+    return `
+      <div class="conv-item type-${typeKey}">
+        <div class="conv-meta">
+          <span><span class="conv-person">${escapeHtml(u.person || '-')}</span> · ${dtStr}</span>
+          <span class="conv-type-badge" style="background: ${typeColors[u.type] || 'rgba(94,107,122,0.14); color: #4a5663'};">
+            ${escapeHtml(u.type)}
+          </span>
+        </div>
+        <div class="conv-text">${progStr}${escapeHtml(u.text)}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function openUpdateModal() {
+  if (currentEditId === null) { alert('احفظ المهمة أولاً'); return; }
+  document.getElementById('updPerson').value = '';
+  document.getElementById('updType').value = 'ملاحظة';
+  document.getElementById('updProgress').value = '';
+  document.getElementById('updStatus').value = '';
+  document.getElementById('updText').value = '';
+  document.getElementById('updateModal').classList.add('active');
+}
+
+function saveUpdate() {
+  const text = document.getElementById('updText').value.trim();
+  if (!text) { alert('من فضلك اكتب نص التحديث'); return; }
+  const t = TASKS.find(x => x.id === currentEditId);
+  if (!t) return;
+  t.updates = t.updates || [];
+
+  const newUpdate = {
+    id: nextUpdateId(t),
+    date: new Date().toISOString(),
+    person: document.getElementById('updPerson').value.trim() || 'مستخدم',
+    type: document.getElementById('updType').value,
+    text: text
+  };
+
+  const progVal = document.getElementById('updProgress').value;
+  if (progVal !== '') {
+    newUpdate.progress = parseFloat(progVal) / 100;
+    t.progress = newUpdate.progress;
+    document.getElementById('fldProgress').value = parseFloat(progVal);
+  }
+
+  const newStat = document.getElementById('updStatus').value;
+  if (newStat) {
+    newUpdate.status = newStat;
+    t.status = newStat;
+    document.getElementById('fldStatus').value = newStat;
+  }
+
+  t.updates.push(newUpdate);
+  const notifText = `<strong>${escapeHtml(t.title)}</strong> - ${escapeHtml(newUpdate.type)}: ${escapeHtml(newUpdate.text.substring(0, 50))}${newUpdate.text.length > 50 ? '...' : ''}`;
+  addNotif('update', notifText, t.id);
+  saveTasksToStorage();
+  renderConversations(t);
+  closeModal('updateModal');
+  toast('تم إضافة التحديث');
+  renderAll();
+}
+
+// ========================== Export / Import ==========================
+function exportJSON() {
+  const blob = new Blob([JSON.stringify(TASKS, null, 2)], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tasks_${new Date().toISOString().substring(0, 10)}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('تم تنزيل النسخة');
+}
+
+function importJSON(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (Array.isArray(data)) {
+        if (!confirm('سيتم استبدال البيانات الحالية. متابعة؟')) return;
+        TASKS = data;
+        TASKS.forEach(t => { if (!t.updates) t.updates = []; });
+        addNotif('import', `تم استيراد ${TASKS.length} مهمة من ملف JSON`, null);
+        saveTasksToStorage();
+        renderAll();
+        toast('تم الاستيراد');
+      } else { alert('ملف غير صالح'); }
+    } catch(err) { alert('خطأ في قراءة الملف'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function exportCSV() {
+  const headers = ['م', 'المصدر', 'القسم', 'المهمة', 'التحديات', 'الحلول', 'المسؤول', 'الأولوية', 'الحالة', 'تاريخ البدء', 'تاريخ الإنجاز', 'نسبة الإنجاز', 'ملاحظات', 'عدد التحديثات'];
+  const rows = TASKS.map(t => [
+    t.id, t.source, t.department, t.title, t.challenge, t.solution,
+    t.responsible, t.priority, t.status, t.startDate, t.dueDate,
+    typeof t.progress === 'number' ? Math.round(t.progress * (t.progress <= 1 ? 100 : 1)) + '%' : '',
+    t.notes, (t.updates || []).length
+  ]);
+  const csv = [headers, ...rows].map(r =>
+    r.map(c => '"' + String(c || '').replace(/"/g, '""') + '"').join(',')
+  ).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `tasks_${new Date().toISOString().substring(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('تم تنزيل CSV');
+}
+
+// ========================== Populate Selects ==========================
+function populateSelects() {
+  const filterSource = document.getElementById('filterSource');
+  const filterDept = document.getElementById('filterDept');
+  const filterResp = document.getElementById('filterResp');
+  const fldSource = document.getElementById('fldSource');
+  const fldDept = document.getElementById('fldDept');
+  const sourceList = document.getElementById('sourceList');
+  const deptList = document.getElementById('deptList');
+  const respList = document.getElementById('respList');
+
+  // اجمع القيم من القوائم الثابتة + المهام الموجودة (بدون تكرار)
+  const uniq = arr => [...new Set(arr.filter(v => v !== undefined && v !== null && String(v).trim() !== ''))].sort();
+  const sources = uniq([...SOURCES, ...TASKS.map(t => t.source)]);
+  const depts = uniq([...DEPARTMENTS, ...TASKS.map(t => t.department)]);
+  const resps = uniq([...RESPONSIBLES, ...TASKS.map(t => t.responsible)]);
+
+  sources.forEach(s => {
+    filterSource.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`);
+    sourceList.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(s)}">`);
+  });
+  depts.forEach(d => {
+    filterDept.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(d)}">${escapeHtml(d)}</option>`);
+    deptList.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(d)}">`);
+  });
+  resps.forEach(r => {
+    filterResp.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(r)}">${escapeHtml(r)}</option>`);
+    respList.insertAdjacentHTML('beforeend', `<option value="${escapeHtml(r)}">`);
+  });
+}
+
+// ========================== Init ==========================
+window.addEventListener('DOMContentLoaded', () => {
+  loadTasks();
+  loadNotifs();
+  renderAll();
+  renderNotifs();
+  updateLastSaved();
+
+  setInterval(() => {
+    if (document.getElementById('notifPanel').classList.contains('active')) {
+      renderNotifs();
+    }
+  }, 60000);
+});
+
+document.addEventListener('click', (e) => {
+  const panel = document.getElementById('notifPanel');
+  const bell = document.getElementById('notifBell');
+  if (panel && bell && panel.classList.contains('active') && !panel.contains(e.target) && !bell.contains(e.target)) {
+    panel.classList.remove('active');
+  }
+});
+
+// Close modal on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', (e) => {
+    if (e.target === m) m.classList.remove('active');
+  });
+});
+
+// Escape key closes modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+</script>
+</body>
+</html>
